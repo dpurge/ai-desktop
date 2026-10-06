@@ -1,3 +1,4 @@
+import os
 from collections.abc import AsyncIterator, Callable
 
 import aisuite
@@ -8,6 +9,10 @@ from backend.llm.base import Delta, LLMError, ToolCallFragment
 from backend.settings_service import SettingsService
 
 _PROVIDER_LABELS = {"ollama": "Ollama", "openrouter": "OpenRouter"}
+# aisuite's own OpenRouter provider has no streaming support, so OpenRouter runs through the
+# OpenAI provider with OpenRouter's base_url (OpenRouter is OpenAI-compatible). Ollama already
+# has a dedicated provider and keeps it.
+_AISUITE_PROVIDER_KEYS = {"ollama": "ollama", "openrouter": "openai"}
 # Local models can take a while to load before the first token; aisuite's default is 30 s.
 _OLLAMA_TIMEOUT_S = 120
 
@@ -28,8 +33,9 @@ class AisuiteLLM:
     ) -> AsyncIterator[Delta]:
         config = self._current_config()
         # aisuite splits "provider:model" on the first colon only, so "ollama:gemma4:12b"
-        # reaches Ollama as model "gemma4:12b".
-        model = f"{config.provider}:{config.model}"
+        # reaches Ollama as model "gemma4:12b". OpenRouter goes through the OpenAI provider
+        # (see _AISUITE_PROVIDER_KEYS) because its own provider cannot stream.
+        model = f"{_AISUITE_PROVIDER_KEYS[config.provider]}:{config.model}"
         try:
             # Config is read and the client built per call, so saved settings (model, endpoint,
             # key) apply to the next turn without a restart.
@@ -63,8 +69,21 @@ class AisuiteLLM:
         if not api_key:
             raise LLMError("OpenRouter API key is not set. Add it in settings.")
         # Only the active provider is configured: aisuite builds every configured provider
-        # eagerly, and OpenRouter refuses to build without a key.
-        return {"openrouter": {"api_key": api_key, "base_url": base_url}}
+        # eagerly, and OpenRouter refuses to build without a key. The "openai" key is deliberate.
+        return {"openai": _with_openrouter_attribution(api_key, base_url)}
+
+
+def _with_openrouter_attribution(api_key: str, base_url: str) -> dict:
+    """OpenRouter's optional attribution headers, matching what its own provider set."""
+    provider_config = {"api_key": api_key, "base_url": base_url}
+    headers = {}
+    if os.getenv("OR_SITE_URL"):
+        headers["HTTP-Referer"] = os.environ["OR_SITE_URL"]
+    if os.getenv("OR_APP_NAME"):
+        headers["X-OpenRouter-Title"] = os.environ["OR_APP_NAME"]
+    if headers:
+        provider_config["default_headers"] = headers
+    return provider_config
 
 
 def _to_llm_error(exc: Exception, config: Config) -> LLMError:

@@ -57,5 +57,5 @@ async def test_saved_key_applies_to_the_next_turn(make_client, settings):
 
     assert "OpenRouter API key is not set" in without_key
     assert "OpenRouter API key is not set" not in with_key
-    assert factory.provider_configs[0]["openrouter"]["api_key"] == KEY
+    assert factory.provider_configs[0]["openai"]["api_key"] == KEY
     assert KEY not in without_key + with_key

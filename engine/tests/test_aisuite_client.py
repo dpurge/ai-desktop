@@ -82,10 +82,12 @@ async def test_ollama_config_uses_base_url_only(tmp_path):
 async def test_openrouter_config_carries_key_and_url(tmp_path):
     client = FakeClient()
     await collect(make_llm(tmp_path, client, provider="openrouter", key=KEY))
+    # OpenRouter is routed through aisuite's OpenAI provider (OpenRouter-compatible base_url)
+    # because its own provider cannot stream.
     assert client.provider_configs == {
-        "openrouter": {"api_key": KEY, "base_url": "https://or.test/api/v1"}
+        "openai": {"api_key": KEY, "base_url": "https://or.test/api/v1"}
     }
-    assert client.calls[0]["model"] == "openrouter:gemma4:12b"
+    assert client.calls[0]["model"] == "openai:gemma4:12b"
 
 
 async def test_missing_openrouter_key_is_readable_and_skips_client(tmp_path):

@@ -16,6 +16,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+- OpenRouter replies stream again: aisuite's own OpenRouter provider has no streaming support, so OpenRouter now runs through aisuite's OpenAI-compatible provider with OpenRouter's base URL.
 - Shell calls now work on Windows: commands run through the host's native shell (`cmd.exe` via `COMSPEC`), and executor output is normalized to LF on every platform.
 - A timed-out or cancelled shell command now stops its whole process tree on Windows (`taskkill /F /T`); POSIX keeps the process-group kill.
 - State-folder resolution uses POSIX path semantics for the Linux branch, so `XDG_CONFIG_HOME` is honored even when the engine runs on Windows.
