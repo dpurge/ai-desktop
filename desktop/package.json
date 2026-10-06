@@ -1,0 +1,7 @@
+{
+  "name": "ai-desktop",
+  "private": true,
+  "devDependencies": {
+    "@tauri-apps/cli": "^2"
+  }
+}

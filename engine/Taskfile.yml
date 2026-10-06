@@ -1,0 +1,52 @@
+version: "3"
+
+tasks:
+  test:
+    desc: Run engine tests (no network)
+    cmds:
+      - uv run pytest
+
+  lint:
+    desc: Lint the engine with ruff
+    cmds:
+      - uv run ruff check
+
+  run-dev:
+    desc: Run the engine with the configured provider and serve the GUI from desktop/gui
+    cmds:
+      - uv run python -m backend --gui-dir ../desktop/gui
+
+  run-fake:
+    desc: Run the engine with the offline fake provider
+    env:
+      AD_LLM: fake
+    cmds:
+      - uv run python -m backend --gui-dir ../desktop/gui
+
+  smoke:
+    desc: "Send one prompt through the real provider (not part of test): task engine:smoke -- ollama"
+    cmds:
+      - uv run python -m backend.smoke {{.CLI_ARGS}}
+
+  sidecar:
+    desc: Freeze the engine with PyInstaller into engine/dist/backend (executable + _internal/)
+    cmds:
+      - uv run pyinstaller --noconfirm --clean --distpath dist --workpath build sidecar.spec
+
+  sidecar-smoke:
+    desc: Start the frozen engine alone (offline fake provider) and check it answers /health
+    env:
+      AD_TOKEN: smoke
+      AD_LLM: fake
+    cmds:
+      - |
+        state_dir=$(mktemp -d)
+        AD_STATE_DIR="$state_dir" timeout 30 dist/backend/backend --port 8765 &
+        engine_pid=$!
+        trap 'kill $engine_pid 2>/dev/null; rm -rf "$state_dir"' EXIT
+        for _ in $(seq 1 40); do
+          if curl -fs -H "X-AD-Token: smoke" http://127.0.0.1:8765/health; then echo; exit 0; fi
+          sleep 0.5
+        done
+        echo "frozen engine did not answer /health" >&2
+        exit 1

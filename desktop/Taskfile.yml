@@ -1,0 +1,45 @@
+version: "3"
+
+tasks:
+  install:
+    desc: Install GUI test dependencies (jsdom) and the Tauri CLI
+    cmds:
+      - cd gui && npm install --no-audit --no-fund
+      - npm install --no-audit --no-fund
+    status:
+      - test -d gui/node_modules/jsdom
+      - test -d node_modules/@tauri-apps/cli
+
+  run:
+    desc: Run the desktop app; the engine is started from AD_ENGINE_CMD (default - uv run from ../engine)
+    deps: [install]
+    vars:
+      ENGINE_DIR:
+        sh: cd ../engine && pwd
+    env:
+      # The app, and so the engine, starts in src-tauri; --directory makes uv find the engine project from there.
+      AD_ENGINE_CMD: "{{.AD_ENGINE_CMD | default (printf \"uv run --directory '%s' python -m backend\" .ENGINE_DIR)}}"
+    cmds:
+      - npx tauri dev --no-watch
+
+  test:
+    desc: Run GUI tests (node --test) and Rust tests (cargo test)
+    deps: [install]
+    cmds:
+      - cd gui && node --test "*.test.js" "components/**/*.test.js"
+      - cd src-tauri && cargo test
+
+  bundle:
+    desc: Build the release AI Desktop.app; needs the frozen engine from `task engine:sidecar`
+    deps: [install]
+    preconditions:
+      - sh: test -x ../engine/dist/backend/backend
+        msg: "engine/dist/backend/backend is missing; run `task engine:sidecar` first"
+    cmds:
+      # Tauri refuses a frontend folder that contains node_modules, so ship a copy without the
+      # test files and their dependencies.
+      - rm -rf src-tauri/target/gui-bundle
+      - mkdir -p src-tauri/target/gui-bundle
+      - rsync -a --exclude node_modules --exclude test-support --exclude '*.test.js' --exclude 'package*.json' gui/ src-tauri/target/gui-bundle/
+      # The sidecar is bundled through a separate config so that `tauri dev` does not need it to exist.
+      - npx tauri build --bundles app --config src-tauri/tauri.bundle.conf.json

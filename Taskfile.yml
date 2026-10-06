@@ -1,0 +1,66 @@
+version: "3"
+
+includes:
+  engine:
+    taskfile: ./engine/Taskfile.yml
+    dir: ./engine
+  gui:
+    taskfile: ./desktop/Taskfile.yml
+    dir: ./desktop
+  installer:
+    taskfile: ./installer/Taskfile.yml
+    dir: ./installer
+
+tasks:
+  test:
+    desc: Run all tests (no network, no real LLM)
+    deps: [engine:test, gui:test]
+
+  run:
+    desc: Run the desktop app (it starts the engine itself)
+    cmds:
+      - task: gui:run
+
+  run-fake:
+    desc: Run the desktop app with the offline fake provider
+    env:
+      AD_LLM: fake
+    cmds:
+      - task: gui:run
+
+  run-web:
+    desc: Run only the engine and serve the GUI for a browser (open the printed URL)
+    cmds:
+      - task: engine:run-dev
+
+  run-web-fake:
+    desc: Same as run-web with the offline fake provider
+    cmds:
+      - task: engine:run-fake
+
+  doctor:
+    desc: Check that the tools needed to build are installed
+    cmds:
+      - |
+        missing=0
+        for tool in task uv node npm cargo; do
+          if command -v "$tool" >/dev/null; then
+            echo "$tool: $("$tool" --version | head -n 1)"
+          else
+            echo "$tool: MISSING - install it (see Requirements in README.md)" >&2
+            missing=1
+          fi
+        done
+        exit $missing
+
+  build:
+    desc: Build the macOS .app without running the tests (output in installer/dist/)
+    deps: [doctor]
+    cmds:
+      - task: installer:release
+
+  release:
+    desc: Run all tests, then build the macOS .app (output in installer/dist/)
+    cmds:
+      - task: test
+      - task: build

@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AI Desktop</title>
+    <link rel="stylesheet" href="./theme.css" />
+    <link rel="stylesheet" href="./app.css" />
+    <script type="module" src="./app.js"></script>
+  </head>
+  <body>
+    <div class="layout">
+      <aside class="sidebar">
+        <ad-session-list id="sessions"></ad-session-list>
+        <a class="settings-link" href="#/settings">Settings</a>
+      </aside>
+      <main id="chat-view" class="chat">
+        <div id="messages" class="chat-messages" role="log" aria-live="polite"></div>
+        <ad-composer id="composer"></ad-composer>
+        <ad-status-bar id="status"></ad-status-bar>
+      </main>
+      <main id="settings-view" class="settings" hidden>
+        <a class="settings-back" href="#/">Back to chat</a>
+        <p id="settings-error" class="settings-error" role="alert" hidden></p>
+        <ad-settings-form id="settings-form"></ad-settings-form>
+      </main>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,50 @@
+ad-model-picker {
+  display: block;
+}
+
+.ad-model-row {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.ad-model-select,
+.ad-model-custom {
+  flex: 1;
+  min-width: 0;
+  padding: var(--space-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+}
+
+.ad-model-custom {
+  width: 100%;
+  margin-top: var(--space-2);
+}
+
+.ad-model-refresh {
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+}
+
+.ad-model-refresh:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.ad-model-note {
+  margin: var(--space-1) 0 0;
+  color: var(--muted);
+  font-size: 0.85em;
+}
+
+.ad-model-error {
+  color: var(--danger);
+}

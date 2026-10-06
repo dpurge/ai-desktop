@@ -1,0 +1,42 @@
+ad-composer {
+  display: flex;
+  gap: var(--space-2);
+  align-items: flex-end;
+}
+
+.ad-composer-input {
+  flex: 1;
+  resize: none;
+  padding: var(--space-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+}
+
+.ad-composer-send {
+  padding: var(--space-2) var(--space-3);
+  border: 0;
+  border-radius: var(--radius);
+  background: var(--btn-bg);
+  color: #ffffff;
+  font: inherit;
+  cursor: pointer;
+}
+
+.ad-composer-send:disabled,
+.ad-composer-input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.ad-composer-stop {
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--danger);
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--danger);
+  font: inherit;
+  cursor: pointer;
+}

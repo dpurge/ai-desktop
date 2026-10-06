@@ -1,0 +1,25 @@
+provider = "ollama"
+model = "gemma4:12b"
+
+[ollama]
+base_url = "http://localhost:11434"
+
+[openrouter]
+base_url = "https://openrouter.ai/api/v1"
+
+[ui]
+theme = "system"
+
+[tools.shell]
+enabled = true
+cwd = "~"
+timeout_s = 60
+
+[approval]
+timeout_s = 600
+
+[skills]
+workspace_dir = ""
+
+[sandbox]
+enabled = false

@@ -1,0 +1,11 @@
+{
+  "name": "ai-desktop-gui",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test \"*.test.js\" \"components/**/*.test.js\""
+  },
+  "devDependencies": {
+    "jsdom": "^26.0.0"
+  }
+}

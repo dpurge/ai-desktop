@@ -1,0 +1,10 @@
+.agent/
+.venv/
+node_modules/
+__pycache__/
+target/
+dist/
+build/
+*.pyc
+.pytest_cache/
+.ruff_cache/

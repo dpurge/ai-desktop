@@ -1,0 +1,48 @@
+/* Design tokens. Components read only these variables, never raw colors. */
+:root {
+  --bg: #ffffff;
+  --surface: #f6f7f9;
+  --surface-alt: #eceef2;
+  --border: #d5d9e0;
+  --text: #1c2026;
+  --muted: #5d6673;
+  --link: #1a5fb4;
+  --btn-bg: #1a5fb4;
+  --danger: #c01c28;
+  --success: #26803f;
+  --radius: 8px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 16px;
+  --space-4: 24px;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --font-sans: system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #14171c;
+    --surface: #1c2027;
+    --surface-alt: #262b34;
+    --border: #353b46;
+    --text: #e6e9ee;
+    --muted: #9aa3b0;
+    --link: #78aeed;
+    --btn-bg: #3584e4;
+    --danger: #ff7b63;
+    --success: #57e389;
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg: #14171c;
+  --surface: #1c2027;
+  --surface-alt: #262b34;
+  --border: #353b46;
+  --text: #e6e9ee;
+  --muted: #9aa3b0;
+  --link: #78aeed;
+  --btn-bg: #3584e4;
+  --danger: #ff7b63;
+  --success: #57e389;
+}

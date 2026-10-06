@@ -1,0 +1,10 @@
+{
+  "build": {
+    "frontendDist": "target/gui-bundle"
+  },
+  "bundle": {
+    "resources": {
+      "../../engine/dist/backend/": "engine/"
+    }
+  }
+}

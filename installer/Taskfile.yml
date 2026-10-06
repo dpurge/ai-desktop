@@ -1,0 +1,39 @@
+version: "3"
+
+includes:
+  engine:
+    taskfile: ../engine/Taskfile.yml
+    dir: ../engine
+  gui:
+    taskfile: ../desktop/Taskfile.yml
+    dir: ../desktop
+
+vars:
+  APP_NAME: AI Desktop.app
+
+tasks:
+  sidecar:
+    desc: Freeze the engine into engine/dist/backend
+    cmds:
+      - task: engine:sidecar
+
+  bundle:
+    desc: Build the .app with the frozen engine inside (needs `sidecar` first)
+    cmds:
+      - task: gui:bundle
+
+  release:
+    desc: Build the engine, bundle the app, and copy it to installer/dist/
+    cmds:
+      - task: sidecar
+      - task: bundle
+      - rm -rf dist && mkdir -p dist
+      - cp -R "../desktop/src-tauri/target/release/bundle/macos/{{.APP_NAME}}" dist/
+      - |
+        echo "Built: $(cd dist && pwd)/{{.APP_NAME}}"
+        du -sh "dist/{{.APP_NAME}}"
+
+  clean:
+    desc: Remove the frozen engine, the bundled app, and the installer output
+    cmds:
+      - rm -rf dist ../engine/dist ../engine/build ../desktop/src-tauri/target/release/bundle
