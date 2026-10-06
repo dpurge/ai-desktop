@@ -10,7 +10,8 @@ starts the engine itself.
 ## Requirements
 
 [Rust](https://rustup.rs), Node.js, `uv`, and [Task](https://taskfile.dev). `task doctor` checks
-that all of them are installed. Building the app needs macOS.
+that all of them are installed. `task build` produces a macOS `.app` on macOS and an NSIS
+installer on Windows; Linux bundle output is not set up yet.
 
 ## Commands
 
@@ -25,25 +26,29 @@ that all of them are installed. Building the app needs macOS.
   prints the reply. It is not part of `task test`.
 - `task engine:lint` lints the engine with ruff.
 - `task doctor` prints the versions of the build tools and fails with a message if one is missing.
-- `task build` builds `installer/dist/AI Desktop.app` without running the tests.
+- `task build` builds the host-platform bundle into `installer/dist/` (`AI Desktop.app` on macOS,
+  `AI Desktop_<version>_x64-setup.exe` on Windows) without running the tests.
 - `task release` runs `task test`, then does the same as `task build`.
 - `task installer:clean` removes the build output.
 
 ## Building the app
 
 `task build` freezes the engine with PyInstaller (`engine/dist/backend/`), then builds the Tauri
-app with the frozen engine as a resource, and copies `AI Desktop.app` to `installer/dist/`. The
-first build compiles the Rust shell in release mode and takes a few minutes. See
-`installer/README.md` for the steps and the bundle layout.
+app with the frozen engine as a resource, and copies the host bundle to `installer/dist/`
+(`AI Desktop.app` on macOS via `--bundles app`, an NSIS setup `.exe` on Windows via
+`--bundles nsis`). The first build compiles the Rust shell in release mode and takes a few
+minutes. See `installer/README.md` for the steps and the bundle layout.
 
-The app contains the Tauri shell, the GUI, and a self-contained engine under
-`Contents/Resources/engine/` (the `backend` executable and its `_internal/` folder, including the
-default `config.toml`, the built-in skills, and the model providers). It needs no Python, `uv`, or
-network access to start.
+The app contains the Tauri shell, the GUI, and a self-contained engine as a resource: under
+`Contents/Resources/engine/` in the macOS `.app` (`backend`), or `engine/` next to the Windows
+executable (`backend.exe`). Both include an `_internal/` folder with the default `config.toml`,
+the built-in skills, and the model providers. It needs no Python, `uv`, or network access to
+start.
 
 The app is **not signed or notarized**. The first time you open a copy that was downloaded or
 copied from another Mac, right-click it and choose Open, or run
-`xattr -dr com.apple.quarantine "AI Desktop.app"`.
+`xattr -dr com.apple.quarantine "AI Desktop.app"`. On Windows, SmartScreen may warn about the
+unsigned installer; choose **More info** then **Run anyway**.
 
 Environment variables:
 

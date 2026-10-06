@@ -12,7 +12,7 @@ All notable changes to this project will be documented in this file.
 - Tools with approval cards: `shell` (approval on every call), `ask` and `propose`; `gmail`, `gcal` and `github` are registered as "not connected yet" stubs.
 - Folder-based skills (`SKILL.md`) with a built-in `concise-summary` example.
 - Optional NVIDIA OpenShell sandbox switch, off by default; unavailable in this version, and shell calls fail closed instead of running on the host.
-- Taskfile-driven `build`, `test`, `run` and `release`, producing a macOS `.app`.
+- Taskfile-driven `build`, `test`, `run` and `release`, producing a macOS `.app` or a Windows NSIS installer (`task build` bundles `app` on macOS and `nsis` on Windows; the GUI copy no longer needs `rsync`).
 
 ### Fixed
 

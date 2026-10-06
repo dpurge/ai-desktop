@@ -9,7 +9,8 @@ includes:
     dir: ../desktop
 
 vars:
-  APP_NAME: AI Desktop.app
+  # Tauri's per-platform bundle folder for the host output.
+  BUNDLE_DIR: '{{if eq OS "windows"}}nsis{{else}}macos{{end}}'
 
 tasks:
   sidecar:
@@ -23,15 +24,15 @@ tasks:
       - task: gui:bundle
 
   release:
-    desc: Build the engine, bundle the app, and copy it to installer/dist/
+    desc: Build the engine, bundle the app, and copy the installer output to installer/dist/
     cmds:
       - task: sidecar
       - task: bundle
       - rm -rf dist && mkdir -p dist
-      - cp -R "../desktop/src-tauri/target/release/bundle/macos/{{.APP_NAME}}" dist/
+      - cp -R "../desktop/src-tauri/target/release/bundle/{{.BUNDLE_DIR}}/." dist/
       - |
-        echo "Built: $(cd dist && pwd)/{{.APP_NAME}}"
-        du -sh "dist/{{.APP_NAME}}"
+        echo "Built installer output in: $(cd dist && pwd)"
+        ls -la dist
 
   clean:
     desc: Remove the frozen engine, the bundled app, and the installer output

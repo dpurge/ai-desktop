@@ -1,5 +1,9 @@
 version: "3"
 
+vars:
+  # The Tauri bundle type for the host: a Windows installer or a macOS .app.
+  BUNDLE_TARGET: '{{if eq OS "windows"}}nsis{{else}}app{{end}}'
+
 tasks:
   install:
     desc: Install GUI test dependencies (jsdom) and the Tauri CLI
@@ -30,16 +34,15 @@ tasks:
       - cd src-tauri && cargo test
 
   bundle:
-    desc: Build the release AI Desktop.app; needs the frozen engine from `task engine:sidecar`
+    desc: Build the release desktop bundle; needs the frozen engine from `task engine:sidecar`
     deps: [install]
     preconditions:
-      - sh: test -x ../engine/dist/backend/backend
-        msg: "engine/dist/backend/backend is missing; run `task engine:sidecar` first"
+      - sh: test -x ../engine/dist/backend/backend{{if eq OS "windows"}}.exe{{end}}
+        msg: "the frozen engine is missing; run `task engine:sidecar` first"
     cmds:
       # Tauri refuses a frontend folder that contains node_modules, so ship a copy without the
-      # test files and their dependencies.
-      - rm -rf src-tauri/target/gui-bundle
-      - mkdir -p src-tauri/target/gui-bundle
-      - rsync -a --exclude node_modules --exclude test-support --exclude '*.test.js' --exclude 'package*.json' gui/ src-tauri/target/gui-bundle/
+      # test files and their dependencies. The Node script replaces rsync/rm/mkdir so this works
+      # on Windows without POSIX tools.
+      - node scripts/copy-gui.mjs gui src-tauri/target/gui-bundle
       # The sidecar is bundled through a separate config so that `tauri dev` does not need it to exist.
-      - npx tauri build --bundles app --config src-tauri/tauri.bundle.conf.json
+      - npx tauri build --bundles {{.BUNDLE_TARGET}} --config src-tauri/tauri.bundle.conf.json

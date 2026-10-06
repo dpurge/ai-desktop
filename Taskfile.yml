@@ -54,13 +54,13 @@ tasks:
         exit $missing
 
   build:
-    desc: Build the macOS .app without running the tests (output in installer/dist/)
+    desc: Build the desktop app for the host platform without running tests (output in installer/dist/)
     deps: [doctor]
     cmds:
       - task: installer:release
 
   release:
-    desc: Run all tests, then build the macOS .app (output in installer/dist/)
+    desc: Run all tests, then build the desktop app for the host platform (output in installer/dist/)
     cmds:
       - task: test
       - task: build

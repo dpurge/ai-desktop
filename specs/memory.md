@@ -10,3 +10,4 @@
 2026-10-06T00:05:00Z [gotcha] Under tauri dev, cwd is desktop/src-tauri; AD_ENGINE_CMD default uses uv run --directory <abs path> to reach engine from that directory.
 2026-10-06T00:06:00Z [gotcha] Windows cmd echo adds a trailing space when a redirection or `&` follows (`echo x 1>&2` emits "x \n"); use `(echo x) 1>&2` and `echo x& next`.
 2026-10-06T00:07:00Z [gotcha] Windows executor: normalize \r\n and lone \r to \n in _SharedBudgetReader; kill the process tree with `taskkill /F /T /PID` (fall back to terminate()); use posixpath.isabs for XDG checks and os.path.expanduser for the approval cwd.
+2026-10-06T00:08:00Z [build] Cross-platform bundle: pick the Tauri bundle type with a Task var (`{{if eq OS "windows"}}nsis{{else}}app{{end}}`); replace rsync with desktop/scripts/copy-gui.mjs (Node cpSync filter); output dirs are bundle/nsis on Windows and bundle/macos on macOS; NSIS downloads its toolchain on first build.
