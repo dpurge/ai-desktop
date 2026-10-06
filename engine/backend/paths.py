@@ -1,4 +1,5 @@
 import os
+import posixpath
 import sys
 from collections.abc import Mapping
 from pathlib import Path
@@ -22,8 +23,9 @@ def resolve_state_dir(env: Mapping[str, str], platform: str, home: Path) -> Path
 
 def _xdg_config_home(env: Mapping[str, str], home: Path) -> Path:
     configured = env.get("XDG_CONFIG_HOME")
-    # The XDG spec says relative values must be ignored.
-    if configured and Path(configured).is_absolute():
+    # The XDG spec says relative values must be ignored. Use POSIX semantics explicitly: the
+    # host may be Windows, where Path("/xdg").is_absolute() is False and the value is dropped.
+    if configured and posixpath.isabs(configured):
         return Path(configured)
     return home / ".config"
 

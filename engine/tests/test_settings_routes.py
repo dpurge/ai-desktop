@@ -1,4 +1,5 @@
 import stat
+import sys
 
 import pytest
 
@@ -86,7 +87,9 @@ async def test_api_key_is_write_only(client, tmp_path):
     assert KEY not in after_put.text + after_update.text
     assert KEY not in (tmp_path / CONFIG_FILE_NAME).read_text()
     secrets_file = tmp_path / SECRETS_FILE_NAME
-    assert stat.S_IMODE(secrets_file.stat().st_mode) == 0o600
+    # Windows has no POSIX permission bits; the mode is best-effort there.
+    if not sys.platform.startswith("win"):
+        assert stat.S_IMODE(secrets_file.stat().st_mode) == 0o600
 
 
 async def test_api_key_can_be_deleted(client):

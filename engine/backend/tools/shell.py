@@ -1,4 +1,4 @@
-from pathlib import Path
+import os
 
 from backend.config import ShellConfig
 from backend.tools.openshell import SandboxUnavailableError
@@ -40,7 +40,7 @@ def shell_spec(config: ShellConfig) -> ToolSpec:
         run=run,
         approval_details=lambda arguments: {
             "command": str(arguments.get("command", "")),
-            "cwd": str(Path(config.cwd).expanduser()),
+            "cwd": os.path.expanduser(config.cwd),
         },
     )
 

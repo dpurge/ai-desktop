@@ -8,8 +8,6 @@ updated: 2026-10-06
 
 ## Now
 
-Not started.
-
 ## Next
 
 - `oauth-connectors` — Real gmail/gcal/github connectors with OAuth

@@ -1,3 +1,5 @@
+import json
+
 from backend.llm.fake import FakeLLM
 from tests.conftest import AUTH
 from tests.test_chat import create_session, parse_events
@@ -57,7 +59,8 @@ async def test_skills_route_picks_up_a_folder_added_while_running(make_client, t
 async def test_skills_route_uses_the_configured_workspace_dir(make_client, tmp_path):
     workspace = tmp_path / "ws"
     write_skill(workspace, "project-only")
-    (tmp_path / "config.toml").write_text(f'[skills]\nworkspace_dir = "{workspace}"\n')
+    workspace_toml = json.dumps(str(workspace))
+    (tmp_path / "config.toml").write_text(f"[skills]\nworkspace_dir = {workspace_toml}\n")
     async with make_client() as http:
         skills = (await http.get("/skills", headers=AUTH)).json()["skills"]
 

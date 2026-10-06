@@ -1,7 +1,15 @@
 import asyncio
+import sys
 import time
 
 from backend.tools.executor import MAX_OUTPUT_BYTES, LocalExecutor, child_environment
+
+IS_WINDOWS = sys.platform.startswith("win")
+
+
+def cmd(posix, windows):
+    """Pick the command spelling for the host shell, so tests exercise the real executor."""
+    return windows if IS_WINDOWS else posix
 
 
 async def run(command, timeout_s=10, cwd="."):
@@ -19,7 +27,7 @@ async def test_success_captures_stdout():
 
 
 async def test_non_zero_exit_and_stderr():
-    result = await run("echo oops >&2; exit 3")
+    result = await run(cmd("echo oops >&2; exit 3", "(echo oops) 1>&2 & exit /b 3"))
     assert result.exit_code == 3
     assert result.stderr == "oops\n"
     assert result.timed_out is False
@@ -27,13 +35,16 @@ async def test_non_zero_exit_and_stderr():
 
 async def test_cwd_is_used_and_tilde_expanded(tmp_path, monkeypatch):
     monkeypatch.setenv("HOME", str(tmp_path))
-    result = await run("pwd", cwd="~")
+    monkeypatch.setenv("USERPROFILE", str(tmp_path))
+    result = await run(cmd("pwd", "cd"), cwd="~")
     assert result.stdout.strip() == str(tmp_path.resolve())
 
 
 async def test_timeout_kills_the_command_and_keeps_partial_output():
     started = time.monotonic()
-    result = await run("echo before; sleep 30", timeout_s=0.5)
+    result = await run(
+        cmd("echo before; sleep 30", "echo before& ping -n 31 127.0.0.1 >nul"), timeout_s=0.5
+    )
 
     assert result.timed_out is True
     assert result.stdout == "before\n"
@@ -42,12 +53,17 @@ async def test_timeout_kills_the_command_and_keeps_partial_output():
 
 async def test_timeout_also_kills_child_processes():
     # The background child holds the pipe open; only a group kill lets the call return.
-    result = await run("sleep 30 & wait", timeout_s=0.5)
+    result = await run(cmd("sleep 30 & wait", "ping -n 31 127.0.0.1 >nul"), timeout_s=0.5)
     assert result.timed_out is True
 
 
 async def test_output_is_truncated_with_a_marker():
-    result = await run("head -c 100000 /dev/zero | tr '\\0' 'x'")
+    result = await run(
+        cmd(
+            "head -c 100000 /dev/zero | tr '\\0' 'x'",
+            f'"{sys.executable}" -c "import sys; sys.stdout.write(\'x\'*100000)"',
+        )
+    )
 
     assert result.exit_code == 0
     assert len(result.stdout) == MAX_OUTPUT_BYTES + len("\n[truncated]")
@@ -56,7 +72,10 @@ async def test_output_is_truncated_with_a_marker():
 
 async def test_cancelling_kills_the_running_process(tmp_path):
     marker = tmp_path / "still-running"
-    task = asyncio.create_task(run(f"sleep 1; touch {marker}", timeout_s=30))
+    command = cmd(
+        f"sleep 1; touch {marker}", f'ping -n 2 127.0.0.1 >nul & type nul > "{marker}"'
+    )
+    task = asyncio.create_task(run(command, timeout_s=30))
     await asyncio.sleep(0.3)
 
     task.cancel()
@@ -95,8 +114,8 @@ async def test_command_does_not_see_the_engine_credentials(monkeypatch):
     for name in ("AD_TOKEN", "OPENROUTER_API_KEY", "GITHUB_TOKEN"):
         monkeypatch.setenv(name, "leaked-value")
 
-    result = await run("env")
+    result = await run(cmd("env", "set"))
 
     assert result.exit_code == 0
     assert "leaked-value" not in result.stdout
-    assert "PATH=" in result.stdout
+    assert "PATH=" in result.stdout.upper()

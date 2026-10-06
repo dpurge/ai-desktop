@@ -123,7 +123,9 @@ Saving applies to the next message you send; no restart is needed. Settings are 
 The OpenRouter key is stored in `secrets.json` in the state folder (owner-only permissions, 0600
 on macOS and Linux). The engine never returns it: the settings API only reports whether a key is
 set, and it never appears in responses, errors, or logs. If `OPENROUTER_API_KEY` is set in the
-environment it takes precedence over the stored key, and Remove only deletes the stored one.
+environment it takes precedence over the stored key, and Remove only deletes the stored one. On
+Windows, POSIX permission bits do not apply; `secrets.json` relies on the ACL of the user profile
+folder (see the `keychain-secrets` roadmap item).
 
 ## Chat history
 
@@ -146,6 +148,10 @@ with `name`, `description`, `requires_approval`, `available`, and `enabled`.
 - **Limits.** A command is killed (with its child processes) after `[tools.shell] timeout_s`
   (60 s). Output is cut to 32 KB, ending with `[truncated]`. Commands run in `[tools.shell] cwd`
   (default `~`) through your shell, with your permissions.
+- **Command syntax is your shell's.** Commands run through the host's native shell — `cmd.exe`
+  on Windows (via `COMSPEC`), `/bin/sh` elsewhere — so use the syntax that shell understands.
+  Output line endings are normalized to LF on every platform, and a killed command's whole
+  process tree is stopped (`taskkill /F /T` on Windows, a process-group kill elsewhere).
 - **Stop.** The Stop button next to the message box ends the turn: pending approvals are
   cancelled and a running command is killed. Closing the app mid-turn does the same.
 - **Turn off.** Set `enabled = false` under `[tools.shell]` in `config.toml`; the model is then not

@@ -13,3 +13,10 @@ All notable changes to this project will be documented in this file.
 - Folder-based skills (`SKILL.md`) with a built-in `concise-summary` example.
 - Optional NVIDIA OpenShell sandbox switch, off by default; unavailable in this version, and shell calls fail closed instead of running on the host.
 - Taskfile-driven `build`, `test`, `run` and `release`, producing a macOS `.app`.
+
+### Fixed
+
+- Shell calls now work on Windows: commands run through the host's native shell (`cmd.exe` via `COMSPEC`), and executor output is normalized to LF on every platform.
+- A timed-out or cancelled shell command now stops its whole process tree on Windows (`taskkill /F /T`); POSIX keeps the process-group kill.
+- State-folder resolution uses POSIX path semantics for the Linux branch, so `XDG_CONFIG_HOME` is honored even when the engine runs on Windows.
+- The shell approval card shows a configured POSIX-style working directory as entered instead of mangling it into a Windows path.

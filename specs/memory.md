@@ -8,3 +8,5 @@
 2026-10-06T00:03:00Z [gotcha] Window loads before engine listens; GUI retries /health (desktop/gui/engine-ready.js); check AD_LOG_LEVEL=info to confirm GUI reaches engine.
 2026-10-06T00:04:00Z [gotcha] Task 3.53 ignores per-command dir: in included Taskfiles; workaround is cd <dir> && ... in command string.
 2026-10-06T00:05:00Z [gotcha] Under tauri dev, cwd is desktop/src-tauri; AD_ENGINE_CMD default uses uv run --directory <abs path> to reach engine from that directory.
+2026-10-06T00:06:00Z [gotcha] Windows cmd echo adds a trailing space when a redirection or `&` follows (`echo x 1>&2` emits "x \n"); use `(echo x) 1>&2` and `echo x& next`.
+2026-10-06T00:07:00Z [gotcha] Windows executor: normalize \r\n and lone \r to \n in _SharedBudgetReader; kill the process tree with `taskkill /F /T /PID` (fall back to terminate()); use posixpath.isabs for XDG checks and os.path.expanduser for the approval cwd.

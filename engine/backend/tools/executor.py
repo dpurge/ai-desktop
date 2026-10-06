@@ -1,6 +1,7 @@
 import asyncio
 import os
 import signal
+import subprocess
 from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
@@ -102,20 +103,41 @@ class _SharedBudgetReader:
             kept += chunk[:room]
             self._remaining -= min(room, len(chunk))
             was_cut = was_cut or len(chunk) > room
-        text = kept.decode("utf-8", errors="replace")
+        # Normalize to LF so results and stored history are identical across platforms.
+        text = kept.decode("utf-8", errors="replace").replace("\r\n", "\n").replace("\r", "\n")
         return text + TRUNCATION_MARKER if was_cut else text
 
 
 def _kill(process: asyncio.subprocess.Process) -> None:
     if process.returncode is not None:
         return
-    try:
-        if os.name == "nt":
+    if os.name == "nt":
+        # taskkill /T reaches the whole tree; terminate() alone leaves grandchildren behind.
+        if _taskkill_tree(process.pid):
+            return
+        try:
             process.terminate()
-        else:
-            os.killpg(process.pid, signal.SIGKILL)
+        except ProcessLookupError:
+            pass
+        return
+    try:
+        os.killpg(process.pid, signal.SIGKILL)
     except ProcessLookupError:
         pass
+
+
+def _taskkill_tree(pid: int) -> bool:
+    """Force-kill a Windows process tree; returns whether taskkill reported success."""
+    try:
+        completed = subprocess.run(
+            ["taskkill", "/F", "/T", "/PID", str(pid)],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            timeout=_DRAIN_GRACE_S,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return False
+    return completed.returncode == 0
 
 
 def _result_or_empty(task: asyncio.Task) -> str:
